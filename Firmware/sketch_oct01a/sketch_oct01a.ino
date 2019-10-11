@@ -35,6 +35,10 @@ void setup() {
   AFMS.begin();
   leftMotor->setSpeed(motorSpeed);
   rightMotor->setSpeed(motorSpeed);
+
+  //Open serial port
+  long baudRate = 9600;
+  Serial.begin(baudRate);
 }
 
 void loop() {
@@ -67,6 +71,8 @@ int checkCase() { //Determines the state of the vehicle relative to the line
   //Read IR sensors
   int l = analogRead(leftSensor);
   int r = analogRead(rightSensor);
+  
+  Serial.println(l, r);
   
   //On line
   if (l > leftSensorThreshold && r > rightSensorThreshold) return 0;
