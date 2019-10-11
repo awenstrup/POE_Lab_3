@@ -13,8 +13,8 @@ int leftSensorThreshold = 512;
 int rightSensorThreshold = 512;
 
 //The point at which the sensor knows it HAS LEFT the line
-int leftSensorLow = 256;
-int rightSensorLow = 256;
+int leftSensorLow = 100;
+int rightSensorLow = 100;
 
 //Default speed for both motors
 int motorSpeed = 50;
@@ -26,19 +26,24 @@ int motorDelta = 30;
 int state = 0;
 
 //Define port numbers for IR sensors
-#define leftSensor A0
-#define rightSensor A1
+#define leftSensor A1
+#define rightSensor A0
 
   
 void setup() {
+  //Wait to start
+  delay(4000);
+  
   //Initialize motor controller and motors
   AFMS.begin();
   leftMotor->setSpeed(motorSpeed);
   rightMotor->setSpeed(motorSpeed);
 
   //Open serial port
+  /*
   long baudRate = 9600;
   Serial.begin(baudRate);
+  */
 }
 
 void loop() {

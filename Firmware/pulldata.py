@@ -5,7 +5,7 @@ This script pulls data sent over USB
 by the Ardino and saves it to be plotted
 by numpy
 
-authors: dtarazi315, awenstrup
+authors: mpatil99, awenstrup
 '''
 #Import statements
 import serial
