@@ -17,10 +17,10 @@ int leftSensorLow = 100;
 int rightSensorLow = 100;
 
 //Default speed for both motors
-int motorSpeed = 50;
+#define motorSpeed 35
 
 //Amount to change motor speed by when turning
-int motorDelta = 30;
+#define motorDelta 20
 
 //State of the vehicle relative to the line
 int state = 0;
@@ -32,12 +32,15 @@ int state = 0;
   
 void setup() {
   //Wait to start
-  delay(4000);
+  delay(2000);
   
   //Initialize motor controller and motors
   AFMS.begin();
   leftMotor->setSpeed(motorSpeed);
   rightMotor->setSpeed(motorSpeed);
+
+  //Enable debugging LED
+  pinMode(13, OUTPUT);
 
   //Open serial port
   /*
@@ -47,6 +50,8 @@ void setup() {
 }
 
 void loop() {
+  digitalWrite(13, HIGH);
+  
   switch(state) {
   //If veering one direction, steer the other way
   case 0: driveStraight(); break;
@@ -58,8 +63,16 @@ void loop() {
   default: error();
   }
   
+
+  /*TEST, NOT FUNCTIONAL
+  leftMotor->setSpeed(motorSpeed);
+  rightMotor->setSpeed(motorSpeed);
+  */
+
+  /*
   leftMotor->run(BACKWARD);
   rightMotor->run(BACKWARD);
+  */
 }
 
 int checkCase() { //Determines the state of the vehicle relative to the line
@@ -103,6 +116,8 @@ void driveStraight() {
   while (state == 0) {
     leftMotor->setSpeed(motorSpeed);
     rightMotor->setSpeed(motorSpeed);
+    leftMotor->run(BACKWARD);
+    rightMotor->run(BACKWARD);
     state = checkCase();
   }
 }
@@ -112,6 +127,8 @@ void steerRight() {
   while (state == 1) {
     leftMotor->setSpeed(motorSpeed-motorDelta);
     rightMotor->setSpeed(motorSpeed+motorDelta);
+    leftMotor->run(BACKWARD);
+    rightMotor->run(BACKWARD);
     state = checkCase();
   }
 }
@@ -121,6 +138,8 @@ void correctRight() {
   while (state == 2) {
     leftMotor->setSpeed(motorSpeed-motorDelta);
     rightMotor->setSpeed(motorSpeed);
+    leftMotor->run(BACKWARD);
+    rightMotor->run(BACKWARD);
     state = checkCase();
   }
 }
@@ -130,6 +149,8 @@ void steerLeft() {
   while (state == 3) {
     leftMotor->setSpeed(motorSpeed+motorDelta);
     rightMotor->setSpeed(motorSpeed-motorDelta);
+    leftMotor->run(BACKWARD);
+    rightMotor->run(BACKWARD);
     state = checkCase();
   }
 }
@@ -139,14 +160,21 @@ void correctLeft() {
   while (state == 4) {
     leftMotor->setSpeed(motorSpeed-motorDelta);
     rightMotor->setSpeed(motorSpeed);
+    leftMotor->run(BACKWARD);
+    rightMotor->run(BACKWARD);
     state = checkCase();
   }
 }
 
 void error() {
   //Spin in place to indicate an error
-  while (state = 5) {
-    leftMotor->setSpeed(128);
-    rightMotor->setSpeed(-128);
+  while (state == 5) {
+    leftMotor->setSpeed(0);
+    rightMotor->setSpeed(0);
+    leftMotor->run(BACKWARD);
+    rightMotor->run(BACKWARD);
+    state = checkCase();
+    digitalWrite(13, HIGH);
   }
+  digitalWrite(13, LOW);
 }
