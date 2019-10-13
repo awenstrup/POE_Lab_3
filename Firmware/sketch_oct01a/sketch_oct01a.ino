@@ -5,19 +5,19 @@
 
 //Create motor and motor shield objects
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(1);
-Adafruit_DCMotor *rightMotor = AFMS.getMotor(2);
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
+Adafruit_DCMotor *rightMotor = AFMS.getMotor(3);
 
 //The point at which the sensor knows it is LEAVING the line
-int leftSensorThreshold = 512;
-int rightSensorThreshold = 512;
+int leftSensorThreshold = 300;
+int rightSensorThreshold = 300;
 
 //The point at which the sensor knows it HAS LEFT the line
-int leftSensorLow = 100;
-int rightSensorLow = 100;
+int leftSensorLow = 50;
+int rightSensorLow = 50;
 
 //Default speed for both motors
-#define motorSpeed 35
+#define motorSpeed 20
 
 //Amount to change motor speed by when turning
 #define motorDelta 20
@@ -31,6 +31,7 @@ int state = 0;
 
   
 void setup() {
+  Serial.begin(9600);
   //Wait to start
   delay(2000);
   
@@ -50,8 +51,6 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(13, HIGH);
-  
   switch(state) {
   //If veering one direction, steer the other way
   case 0: driveStraight(); break;
@@ -89,23 +88,26 @@ int checkCase() { //Determines the state of the vehicle relative to the line
   //Read IR sensors
   int l = analogRead(leftSensor);
   int r = analogRead(rightSensor);
-  
-  Serial.println(l, r);
+  Serial.print(state);
+  Serial.print(" ");
+  Serial.print(l);
+  Serial.print(" ");
+  Serial.println(r);
   
   //On line
   if (l > leftSensorThreshold && r > rightSensorThreshold) return 0;
   
   //Veering left
-  if (l < leftSensorThreshold && l > leftSensorLow && r > rightSensorThreshold) return 1;
+  else if ((l < leftSensorThreshold && l > leftSensorLow) && r > rightSensorThreshold) return 1;
   
   //Off left
-  if (l < leftSensorLow && (r > rightSensorThreshold || state == 1)) return 2;
+  else if (l < leftSensorThreshold && r > rightSensorLow) return 2;
   
   //Veering right
-  if (l > leftSensorThreshold && r > rightSensorLow && r < rightSensorThreshold) return 3;
+  else if (l > leftSensorThreshold && r > rightSensorLow && r < rightSensorThreshold) return 3;
   
   //Off right
-  if (r < rightSensorLow && (l > leftSensorThreshold || state == 3)) return 4;
+  else if (r < rightSensorThreshold && l > leftSensorLow ) return 4;
   
   //Whoops!
   else return 5;
@@ -125,7 +127,7 @@ void driveStraight() {
 void steerRight() {
   //Steer right when veering left
   while (state == 1) {
-    leftMotor->setSpeed(motorSpeed-motorDelta);
+    leftMotor->setSpeed(motorSpeed);
     rightMotor->setSpeed(motorSpeed+motorDelta);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
@@ -137,7 +139,7 @@ void correctRight() {
   //Steer hard right when off the line to the left
   while (state == 2) {
     leftMotor->setSpeed(motorSpeed-motorDelta);
-    rightMotor->setSpeed(motorSpeed);
+    rightMotor->setSpeed(motorSpeed+motorDelta);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
     state = checkCase();
@@ -148,7 +150,7 @@ void steerLeft() {
   //Steer left when veering right
   while (state == 3) {
     leftMotor->setSpeed(motorSpeed+motorDelta);
-    rightMotor->setSpeed(motorSpeed-motorDelta);
+    rightMotor->setSpeed(motorSpeed);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
     state = checkCase();
@@ -158,8 +160,8 @@ void steerLeft() {
 void correctLeft() {
   //Steer hard left when off the line to the right
   while (state == 4) {
-    leftMotor->setSpeed(motorSpeed-motorDelta);
-    rightMotor->setSpeed(motorSpeed);
+    leftMotor->setSpeed(motorSpeed+motorDelta);
+    rightMotor->setSpeed(motorSpeed-motorDelta);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
     state = checkCase();
@@ -169,12 +171,13 @@ void correctLeft() {
 void error() {
   //Spin in place to indicate an error
   while (state == 5) {
+    digitalWrite(13, HIGH);
     leftMotor->setSpeed(0);
     rightMotor->setSpeed(0);
     leftMotor->run(BACKWARD);
     rightMotor->run(BACKWARD);
     state = checkCase();
-    digitalWrite(13, HIGH);
+    digitalWrite(13, LOW);
   }
-  digitalWrite(13, LOW);
+  
 }
