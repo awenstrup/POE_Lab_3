@@ -31,11 +31,12 @@ int state = 0;
 
 int speedRight = 0;
 int speedLeft = 0;
-int dirRight = 0;
-int dirLeft = 0;
+
+char mess[20] = "";
 
   
 void setup() {
+  //Open Serial Port
   Serial.begin(9600);
   //Wait to start
   delay(2000);
@@ -47,40 +48,10 @@ void setup() {
 
   //Enable debugging LED
   pinMode(13, OUTPUT);
-
-  //Open serial port
-  /*
-  long baudRate = 9600;
-  Serial.begin(baudRate);
-  */
 }
 
 void loop() {
-//  switch(state) {
-//  //If veering one direction, steer the other way
-//  case 0: driveStraight(); break;
-//  case 1: steerRight(); break;
-//  case 2: correctRight(); break;
-//  case 3: steerLeft(); break;
-//  case 4: correctLeft(); break;
-//
-//  default: error();
-//  }
-  checkCase();
   
-
-  /*TEST, NOT FUNCTIONAL
-  leftMotor->setSpeed(motorSpeed);
-  rightMotor->setSpeed(motorSpeed);
-  */
-
-  /*
-  leftMotor->run(BACKWARD);
-  rightMotor->run(BACKWARD);
-  */
-}
-
-int checkCase() { //Determines the state of the vehicle relative to the line
   /*
    * Cases:
    * On the line: 0
@@ -94,42 +65,49 @@ int checkCase() { //Determines the state of the vehicle relative to the line
   digitalWrite(13, LOW);
   
   //Read IR sensors
+  
   int l = analogRead(leftSensor);
   int r = analogRead(rightSensor);
-  Serial.print(state);
-  Serial.print(" ");
-  Serial.print(l);
-  Serial.print(" ");
-  Serial.println(r);
+//  sprintf(mess, "%d %d %d %d, l, r, speedL/eft, speedRight);
+//  Serial.print(state);
+//  Serial.print(" ");
+//  Serial.print(l);
+//  Serial.print(" ");
+//  Serial.println(r);
   
   //On line
   if (l > leftSensorThreshold && r > rightSensorThreshold) {
     speedRight = motorSpeed;
     speedLeft = motorSpeed;
+//    Serial.pri/nt(0);
   }
   
   //Veering left
   else if ((l < leftSensorThreshold && l > leftSensorLow) && r > rightSensorThreshold) {
     speedRight = motorSpeed;
     speedLeft = motorSpeed + motorDelta;
+//    Serial.print(1);/
   }
   
   //Off left
   else if (l < leftSensorThreshold && r > rightSensorLow) {
     speedRight = motorSpeed-motorDelta;
     speedLeft = motorSpeed+motorDelta;
+//    Serial.pr/int(2);
   }
   
   //Veering right
   else if (l > leftSensorThreshold && r > rightSensorLow && r < rightSensorThreshold) {
     speedRight = motorSpeed+motorDelta;
     speedLeft = motorSpeed;
+//    Serial.prin/t(3);
   }
   
   //Off right
   else if (r < rightSensorThreshold && l > leftSensorLow ) {
     speedRight = motorSpeed+motorDelta;
-    speedLeft = motorSpeed-motorSpeed;
+    speedLeft = motorSpeed-motorDelta;
+//    Serial.print(4/);
   }
   
   //Whoops!
@@ -137,78 +115,13 @@ int checkCase() { //Determines the state of the vehicle relative to the line
     digitalWrite(13, HIGH);
     speedRight = 0;
     speedLeft = 0;
+//    Serial.print(/5);
   }
 
   leftMotor->setSpeed(speedLeft > 0 ? speedLeft: -speedLeft);
   rightMotor->setSpeed(speedRight > 0 ? speedRight: -speedRight);
   leftMotor->run(speedLeft > 0 ? BACKWARD : FORWARD);
   rightMotor->run(speedRight > 0 ? BACKWARD : FORWARD);
+  sprintf(mess, "  %d %d %d %d", l, r, speedLeft > 0 ? speedLeft: -speedLeft, speedRight > 0 ? speedRight: -speedRight);
+  Serial.println(mess);
 }
-
-//void driveStraight() {
-//  //Drive straight while both sensors are on the line
-//  while (state == 0) {
-//    leftMotor->setSpeed(motorSpeed);
-//    rightMotor->setSpeed(motorSpeed);
-//    leftMotor->run(BACKWARD);
-//    rightMotor->run(BACKWARD);
-//    state = checkCase();
-//  }
-//}
-//
-//void steerRight() {
-//  //Steer right when veering left
-//  while (state == 1) {
-//    leftMotor->setSpeed(motorSpeed);
-//    rightMotor->setSpeed(motorSpeed+motorDelta);
-//    leftMotor->run(BACKWARD);
-//    rightMotor->run(BACKWARD);
-//    state = checkCase();
-//  }
-//}
-//
-//void correctRight() {
-//  //Steer hard right when off the line to the left
-//  while (state == 2) {
-//    leftMotor->setSpeed(motorSpeed-motorDelta);
-//    rightMotor->setSpeed(motorSpeed+motorDelta);
-//    leftMotor->run(BACKWARD);
-//    rightMotor->run(BACKWARD);
-//    state = checkCase();
-//  }
-//}
-//
-//void steerLeft() {
-//  //Steer left when veering right
-//  while (state == 3) {
-//    leftMotor->setSpeed(motorSpeed+motorDelta);
-//    rightMotor->setSpeed(motorSpeed);
-//    leftMotor->run(BACKWARD);
-//    rightMotor->run(BACKWARD);
-//    state = checkCase();
-//  }
-//}
-//
-//void correctLeft() {
-//  //Steer hard left when off the line to the right
-//  while (state == 4) {
-//    leftMotor->setSpeed(motorSpeed+motorDelta);
-//    rightMotor->setSpeed(motorSpeed-motorDelta);
-//    leftMotor->run(BACKWARD);
-//    rightMotor->run(BACKWARD);
-//    state = checkCase();
-//  }
-//}
-//
-//void error() {
-//  //Spin in place to indicate an error
-//  while (state == 5) {
-//    digitalWrite(13, HIGH);
-//    leftMotor->setSpeed(0);
-//    rightMotor->setSpeed(0);
-//    leftMotor->run(BACKWARD);
-//    rightMotor->run(BACKWARD);
-//    state = checkCase();
-//    digitalWrite(13, LOW);
-//  }
-//  }
